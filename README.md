@@ -1,4 +1,10 @@
 <div align="center">
+
+  <img src="https://i.postimg.cc/9XSfrbGW/Whats-App-Image-2024-08-09-at-8-08-27-PM.jpg" alt="Project Banner">
+    
+
+
+
   <div>
     <img src="https://img.shields.io/badge/-React_Native-black?style=for-the-badge&logoColor=white&logo=react&color=61DAFB" alt="react-native" />
     <img src="https://img.shields.io/badge/-React_Native_Reanimated-black?style=for-the-badge&logoColor=white&logo=react&color=61DAFB" alt="react-native-reanimated" />
