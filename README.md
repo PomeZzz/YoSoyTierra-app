@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://i.postimg.cc/9XSfrbGW/Whats-App-Image-2024-08-09-at-8-08-27-PM.jpg" alt="Project Banner">
+  <img src="https://i.postimg.cc/bNzC5Nkq/254065526-317972119711089-8205851312934076105-n.jpg" alt="Project Banner">
     
 
 
@@ -12,7 +12,7 @@
     <img src="https://img.shields.io/badge/-Node.js-black?style=for-the-badge&logoColor=white&logo=node.js&color=339933" alt="node.js" />
     <img src="https://img.shields.io/badge/-Expo-black?style=for-the-badge&logoColor=white&logo=expo&color=000020" alt="expo" />
     <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="figma" />
-    <img src="	https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />          
+    <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />          
   </div>
 
   <h3 align="center">Full Stack SujiNavi App</h3>
