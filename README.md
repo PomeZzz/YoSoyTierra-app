@@ -37,4 +37,4 @@ SujiNavi es una aplicación móvil diseñada para facilitar la traducción de n�
 - **Figma**
 
 ## <a name="links">🔗 Links</a>
-- **🎨 Design** : [Figma App Desing✍](https://www.figma.com/design/ub15DLaEqyRc6yeEbpGg46/Expo-Boulders?node-id=0-1&t=OzUyQ6KLuwWZx47s-1)
+- **🎨 Design** : [Figma App Desing✍](https://www.figma.com/design/msjIgYkswhnqDGOGFoteVN/Untitled?node-id=0-1&t=Azl75qVGltF1Gul1-1)
