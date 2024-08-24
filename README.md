@@ -30,7 +30,6 @@ Aplicacion mobil de compra venta de cosmetica natural.
 ## <a name="tech-stack">⚙️ Tech Stack</a>
 - **React Native**
 - **React Native Reanimated**
-- **Tailwind CSS**
 - **Node.js**
 - **Expo**
 - **Laravel**
