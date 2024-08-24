@@ -24,7 +24,8 @@
 3. 🔗 [Links](#links)
 
 ## <a name="introduction">🤖 Introduction</a>
-SujiNavi es una aplicación móvil diseñada para facilitar la traducción de números y palabras del español al japonés. Esta herramienta es ideal para estudiantes de japonés, turistas y cualquier persona interesada en aprender y comprender mejor la lengua japonesa. Con SujiNavi, los usuarios pueden ingresar números o palabras en español y recibir la traducción precisa al japonés en tiempo real, permitiendo un aprendizaje interactivo y accesible desde cualquier lugar.
+YoSoyTierra-App.
+Aplicacion mobil de compra venta de cosmetica natural.
 
 ## <a name="tech-stack">⚙️ Tech Stack</a>
 - **React Native**
