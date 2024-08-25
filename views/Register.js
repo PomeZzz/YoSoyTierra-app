@@ -32,6 +32,12 @@ export default function RegisterScreen() {
         placeholderTextColor="#B6A99A"
         secureTextEntry
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirmar contraseña"
+        placeholderTextColor="#B6A99A"
+        secureTextEntry
+      />
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Crear Cuenta</Text>
