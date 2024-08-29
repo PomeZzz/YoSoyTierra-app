@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const Home = ({ navigation }) => {
+const AdminHome = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('Popular');
 
   const renderContent = () => {
@@ -69,8 +69,8 @@ const Home = ({ navigation }) => {
           <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Settings')}>
             <Ionicons name="settings-outline" size={24} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
-            <Ionicons name="cart-outline" size={24} color="black" />
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('AdminOrderHistory')}>
+            <Ionicons name="archive-outline" size={24} color="black" />
           </TouchableOpacity>
         </View>
         <Image
@@ -98,6 +98,12 @@ const Home = ({ navigation }) => {
           <Text style={styles.menuText}>Recomendado</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => navigation.navigate('AddProduct')}
+      >
+        <Text style={styles.addButtonText}>Agregar Producto</Text>
+      </TouchableOpacity>
       {renderContent()}
     </ScrollView>
   );
@@ -109,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D2D2D',
   },
   header: {
-    height: 240, // Altura ajustada para el header completo
+    height: 240, 
     backgroundColor: '#333',
     position: 'relative',
   },
@@ -117,8 +123,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginTop: 50,  // Desplaza los botones hacia abajo
-    zIndex: 10,  // Asegura que los botones estén por encima de la imagen
+    marginTop: 50,
+    zIndex: 10,
   },
   iconButton: {
     backgroundColor: '#E6E6E6',
@@ -128,7 +134,7 @@ const styles = StyleSheet.create({
   headerImage: {
     width: '100%',
     height: '100%',
-    position: 'absolute',  // Asegura que la imagen esté debajo de los botones
+    position: 'absolute',
     top: 0,
     left: 0,
     zIndex: 1,
@@ -152,10 +158,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D2C2B',
     borderWidth: 1,
     borderColor: '#8B6A60'
-
   },
   menuText: {
     color: '#fff',
+  },
+  addButton: {
+    margin: 20,
+    padding: 15,
+    backgroundColor: '#8B6A60',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   products: {
     flexDirection: 'row',
@@ -198,4 +215,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default AdminHome;

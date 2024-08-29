@@ -1,13 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from './views/Login';  // Vista de inicio de sesión
-import RegisterScreen from './views/Register';  // Vista de registro
+import LoginScreen from './views/Login';
+import RegisterScreen from './views/Register';
 import HomeScreen from './views/Home';
-import CartScreen from './views/Cart';  // Nueva vista de carrito de compras
+import CartScreen from './views/Cart';
 import ProductDetailScreen from './views/ProductDetail';
 import SettingsScreen from './views/Settings';
 import EditProfileScreen from './views/EditProfile';
+import AdminHomeScreen from './views/AdminHome';
+import AddProductScreen from './views/AddProduct';
+import AdminOrderHistoryScreen from './views/AdminOrderHistory';
 
 const Stack = createNativeStackNavigator();
 
@@ -52,6 +55,16 @@ export default function App() {
          <Stack.Screen 
           name="EditProfile" 
           component={EditProfileScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="AdminHome" 
+          component={AdminHomeScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="AdminOrderHistory" 
+          component={AdminOrderHistoryScreen} 
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

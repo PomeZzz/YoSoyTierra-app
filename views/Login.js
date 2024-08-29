@@ -29,7 +29,7 @@ export default function LoginScreen() {
         secureTextEntry
       />
 
-      <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.button}>
+      <TouchableOpacity onPress={() => navigation.navigate('AdminHome')} style={styles.button}>
         <Text style={styles.buttonText}>Inicia Sesión</Text>
       </TouchableOpacity>
 
