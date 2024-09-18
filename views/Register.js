@@ -1,14 +1,49 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Para la navegación
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { auth, db } from '../config/FireBaseConfig'; // Importa auth correctamente
+import { createUserWithEmailAndPassword } from 'firebase/auth'; 
+import { doc, setDoc } from 'firebase/firestore'; // Importa las funciones necesarias de Firestore
 
 export default function RegisterScreen() {
-  const navigation = useNavigation(); // Hook para la navegación
+  const navigation = useNavigation();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleRegister = () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const userId = userCredential.user.uid;
+
+        // Utiliza setDoc para agregar los datos a Firestore
+        setDoc(doc(db, 'users', userId), {
+          name: name,
+          email: email,
+        })
+        .then(() => {
+          Alert.alert('Usuario creado', 'Registro exitoso');
+          navigation.navigate('Login');
+        })
+        .catch((error) => {
+          console.error('Error al guardar en Firestore: ', error);
+        });
+      })
+      .catch((error) => {
+        Alert.alert('Error de registro', error.message);
+      });
+  };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-  {/*      <Text style={styles.backText}>asd</Text>  Este es un simple botón de retroceso */}
       </TouchableOpacity>
 
       <Text style={styles.title}>Registro</Text>
@@ -17,6 +52,8 @@ export default function RegisterScreen() {
         style={styles.input}
         placeholder="Nombre"
         placeholderTextColor="#B6A99A"
+        onChangeText={text => setName(text)}
+        value={name}
       />
 
       <TextInput
@@ -24,6 +61,8 @@ export default function RegisterScreen() {
         placeholder="hey@gmail.com"
         placeholderTextColor="#B6A99A"
         keyboardType="email-address"
+        onChangeText={text => setEmail(text)}
+        value={email}
       />
 
       <TextInput
@@ -31,15 +70,20 @@ export default function RegisterScreen() {
         placeholder="Introduce tu contraseña"
         placeholderTextColor="#B6A99A"
         secureTextEntry
+        onChangeText={text => setPassword(text)}
+        value={password}
       />
+
       <TextInput
         style={styles.input}
         placeholder="Confirmar contraseña"
         placeholderTextColor="#B6A99A"
         secureTextEntry
+        onChangeText={text => setConfirmPassword(text)}
+        value={confirmPassword}
       />
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Crear Cuenta</Text>
       </TouchableOpacity>
 
@@ -64,10 +108,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: 20,
     marginLeft: 10,
-  },
-  backText: {
-    color: '#FFFFFF',
-    fontSize: 18,
   },
   title: {
     fontSize: 24,

@@ -12,6 +12,7 @@ import AdminHomeScreen from './views/AdminHome';
 import AddProductScreen from './views/AddProduct';
 import AdminOrderHistoryScreen from './views/AdminOrderHistory';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -65,6 +66,11 @@ export default function App() {
         <Stack.Screen 
           name="AdminOrderHistory" 
           component={AdminOrderHistoryScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="AddProduct" 
+          component={AddProductScreen} 
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

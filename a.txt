@@ -1,0 +1,7 @@
+Sliders[
+name
+category (Facial,Corporal,Popular,Nuevo)
+description
+imageUrl
+price
+]
