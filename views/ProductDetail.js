@@ -1,31 +1,60 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import LoadingScreen from './LoadingScreen'; // Asegúrate de importar el componente de pantalla de carga
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../config/FireBaseConfig';
+import LoadingScreen from './LoadingScreen';
 
-const ProductDetail = ({ navigation }) => {
+const ProductDetail = ({ route, navigation }) => {
+  const { productId } = route.params; // Obtener productId de los parámetros de navegación
+  const [product, setProduct] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false); // Estado para controlar la pantalla de carga
+  const [isLoading, setIsLoading] = useState(true); // Estado para controlar la pantalla de carga
   const maxQuantity = 10;
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const productRef = doc(db, 'Sliders', productId); // Referencia al documento de Firestore
+        const productSnap = await getDoc(productRef);
+
+        if (productSnap.exists()) {
+          setProduct(productSnap.data()); // Almacenar los datos del producto
+        } else {
+          Alert.alert('Error', 'Producto no encontrado');
+        }
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+        Alert.alert('Error', 'Hubo un problema al obtener los detalles del producto');
+      } finally {
+        setIsLoading(false); // Ocultar pantalla de carga cuando los datos se hayan cargado
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
   const handleAddToCart = () => {
-    setIsLoading(true); // Mostrar pantalla de carga
+    setIsLoading(true);
 
     setTimeout(() => {
-      setIsLoading(false); // Ocultar pantalla de carga
+      setIsLoading(false);
       Alert.alert('Éxito', 'Producto agregado al carrito exitosamente.');
-    }, 2000); // Simula un retraso en el proceso de agregar al carrito
+    }, 2000);
   };
 
   if (isLoading) {
-    return <LoadingScreen message="Agregando al carrito..." />;
+    return <LoadingScreen message="Cargando detalles del producto..." />;
+  }
+
+  if (!product) {
+    return null;
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Image
-          source={require('../assets/hialuronico.png')}
+          source={{ uri: product.imageUrl }} // Usar la URL de la imagen del producto
           style={styles.productImage}
         />
         <View style={styles.backAndCartContainer}>
@@ -37,8 +66,8 @@ const ProductDetail = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.detailsContainer}>
-          <Text style={styles.productName}>Serum Facial</Text>
-          <Text style={styles.productDescription}>lorem das dassada</Text>
+          <Text style={styles.productName}>{product.name}</Text>
+          <Text style={styles.productDescription}>{product.description}</Text>
           <Text style={styles.sectionTitle}>Cantidad</Text>
           <View style={styles.quantityContainer}>
             {[...Array(maxQuantity)].map((_, index) => (
@@ -61,16 +90,14 @@ const ProductDetail = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
-          <Text style={styles.sectionTitle}>Información</Text>
           <Text style={styles.productInfo}>
-            Lorem ipsum dolor sit amet consectetur adipiscing elit. Minima obcaecati quas repudiandae molestias id nobis sunt.
+            {product.about}
           </Text>
-          <Text style={styles.totalPrice}>Precio Total: $250.00</Text>
+          <Text style={styles.totalPrice}>Precio Total: ${product.price * selectedQuantity}</Text>
           <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
             <Text style={styles.addToCartText}>Agregar al Carro</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
     </View>
   );
 };

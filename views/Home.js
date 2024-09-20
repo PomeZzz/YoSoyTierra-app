@@ -25,14 +25,15 @@ const Home = ({ navigation }) => {
 
   // Función para cargar sliders de una categoría específica
   const GetSliders = async (category) => {
-    const q = query(collection(db, 'Sliders'), where('category', '==', category)); // Filtrar sliders por categoría
+    const q = query(collection(db, 'Sliders'), where('category', '==', category)); 
     const snapshot = await getDocs(q);
     const sliders = [];
     snapshot.forEach((doc) => {
-      sliders.push(doc.data());
+      sliders.push({ ...doc.data(), id: doc.id }); // Agregar el ID del documento a los datos
     });
     setSliderList(sliders);
   };
+  
 
   // Cargar sliders según la categoría seleccionada
   useEffect(() => {

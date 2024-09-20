@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingScreen from './LoadingScreen'; // Importa el componente de pantalla de carga
+import { db } from '../config/FireBaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const Cart = ({ navigation }) => {
+
+
+const Cart = ({ navigation, user }) => {
   const [items, setItems] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]); // Estado para manejar los ítems del carrito
   const [isLoading, setIsLoading] = useState(false); // Estado para controlar la pantalla de carga
-
+  
+  
+  
   const handleDelete = (index) => {
     setIsLoading(true); // Mostrar pantalla de carga
 

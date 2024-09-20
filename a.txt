@@ -5,3 +5,179 @@ description
 imageUrl
 price
 ]
+
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import LoadingScreen from './LoadingScreen'; // Asegúrate de importar el componente de pantalla de carga
+
+const ProductDetail = ({ navigation }) => {
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(false); // Estado para controlar la pantalla de carga
+  const maxQuantity = 10;
+
+  const handleAddToCart = () => {
+    setIsLoading(true); // Mostrar pantalla de carga
+
+    setTimeout(() => {
+      setIsLoading(false); // Ocultar pantalla de carga
+      Alert.alert('Éxito', 'Producto agregado al carrito exitosamente.');
+    }, 2000); // Simula un retraso en el proceso de agregar al carrito
+  };
+
+  if (isLoading) {
+    return <LoadingScreen message="Agregando al carrito..." />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <Image
+          source={require('../assets/hialuronico.png')}
+          style={styles.productImage}
+        />
+        <View style={styles.backAndCartContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+            <Ionicons name="chevron-back-outline" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
+            <Ionicons name="cart-outline" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.detailsContainer}>
+          <Text style={styles.productName}>Serum Facial</Text>
+          <Text style={styles.productDescription}>lorem das dassada</Text>
+          <Text style={styles.sectionTitle}>Cantidad</Text>
+          <View style={styles.quantityContainer}>
+            {[...Array(maxQuantity)].map((_, index) => (
+              <TouchableOpacity
+                key={index + 1}
+                style={[
+                  styles.quantityButton,
+                  selectedQuantity === index + 1 && styles.selectedQuantityButton,
+                ]}
+                onPress={() => setSelectedQuantity(index + 1)}
+              >
+                <Text
+                  style={[
+                    styles.quantityText,
+                    selectedQuantity === index + 1 && styles.selectedQuantityText,
+                  ]}
+                >
+                  {index + 1}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={styles.sectionTitle}>Información</Text>
+          <Text style={styles.productInfo}>
+            Lorem ipsum dolor sit amet consectetur adipiscing elit. Minima obcaecati quas repudiandae molestias id nobis sunt.
+          </Text>
+          <Text style={styles.totalPrice}>Precio Total: $250.00</Text>
+          <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+            <Text style={styles.addToCartText}>Agregar al Carro</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1B1B1B',
+  },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
+  productImage: {
+    width: '100%',
+    height: 300,
+  },
+  backAndCartContainer: {
+    position: 'absolute',
+    top: 40,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+  },
+  iconButton: {
+    padding: 10,
+    backgroundColor: '#E6E6E6',
+    borderRadius: 10,
+  },
+  detailsContainer: {
+    padding: 20,
+    backgroundColor: '#2D2D2D',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -20, // Para superponerlo ligeramente sobre la imagen
+  },
+  productName: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  productDescription: {
+    color: '#aaa',
+    marginTop: 5,
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  quantityButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#3C3C3C',
+    borderRadius: 5,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  selectedQuantityButton: {
+    backgroundColor: '#8B6A60',
+  },
+  quantityText: {
+    color: '#fff',
+  },
+  selectedQuantityText: {
+    fontWeight: 'bold',
+  },
+  productInfo: {
+    color: '#aaa',
+    marginTop: 10,
+    lineHeight: 20,
+  },
+  totalPrice: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+  },
+  addToCartButton: {
+    backgroundColor: '#8B6A60',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  addToCartText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
+
+export default ProductDetail;
