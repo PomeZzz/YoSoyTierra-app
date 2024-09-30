@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore'; // Añadido 'setDoc' para guardar en Firestore
 import { db } from '../config/FireBaseConfig';
 import LoadingScreen from './LoadingScreen';
 
@@ -34,13 +34,31 @@ const ProductDetail = ({ route, navigation }) => {
     fetchProduct();
   }, [productId]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Referencia a la colección 'Cart' con un ID de usuario simulado, puedes usar un ID dinámico
+      const cartRef = doc(db, 'cart', '123'); // Modifica 'user_cart' con el ID del usuario actual
+      const cartSnap = await getDoc(cartRef);
+
+      if (cartSnap.exists()) {
+        // Si el carrito ya existe, actualiza los productos
+        const existingCart = cartSnap.data().items || [];
+        const newCart = [...existingCart, { productId, quantity: selectedQuantity }];
+        await setDoc(cartRef, { items: newCart });
+      } else {
+        // Si no existe el carrito, lo crea con el primer producto
+        await setDoc(cartRef, { items: [{ productId, quantity: selectedQuantity }] });
+      }
+
       Alert.alert('Éxito', 'Producto agregado al carrito exitosamente.');
-    }, 2000);
+    } catch (error) {
+      console.error("Error al agregar al carrito:", error);
+      Alert.alert('Error', 'Hubo un problema al agregar el producto al carrito.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -53,51 +71,51 @@ const ProductDetail = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-        <Image
-          source={{ uri: product.imageUrl }} // Usar la URL de la imagen del producto
-          style={styles.productImage}
-        />
-        <View style={styles.backAndCartContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-            <Ionicons name="chevron-back-outline" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
-            <Ionicons name="cart-outline" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.productDescription}>{product.description}</Text>
-          <Text style={styles.sectionTitle}>Cantidad</Text>
-          <View style={styles.quantityContainer}>
-            {[...Array(maxQuantity)].map((_, index) => (
-              <TouchableOpacity
-                key={index + 1}
+      <Image
+        source={{ uri: product.imageUrl }} // Usar la URL de la imagen del producto
+        style={styles.productImage}
+      />
+      <View style={styles.backAndCartContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+          <Ionicons name="chevron-back-outline" size={24} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
+          <Ionicons name="cart-outline" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.detailsContainer}>
+        <Text style={styles.productName}>{product.name}</Text>
+        <Text style={styles.productDescription}>{product.description}</Text>
+        <Text style={styles.sectionTitle}>Cantidad</Text>
+        <View style={styles.quantityContainer}>
+          {[...Array(maxQuantity)].map((_, index) => (
+            <TouchableOpacity
+              key={index + 1}
+              style={[
+                styles.quantityButton,
+                selectedQuantity === index + 1 && styles.selectedQuantityButton,
+              ]}
+              onPress={() => setSelectedQuantity(index + 1)}
+            >
+              <Text
                 style={[
-                  styles.quantityButton,
-                  selectedQuantity === index + 1 && styles.selectedQuantityButton,
+                  styles.quantityText,
+                  selectedQuantity === index + 1 && styles.selectedQuantityText,
                 ]}
-                onPress={() => setSelectedQuantity(index + 1)}
               >
-                <Text
-                  style={[
-                    styles.quantityText,
-                    selectedQuantity === index + 1 && styles.selectedQuantityText,
-                  ]}
-                >
-                  {index + 1}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.productInfo}>
-            {product.about}
-          </Text>
-          <Text style={styles.totalPrice}>Precio Total: ${product.price * selectedQuantity}</Text>
-          <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-            <Text style={styles.addToCartText}>Agregar al Carro</Text>
-          </TouchableOpacity>
+                {index + 1}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
+        <Text style={styles.productInfo}>
+          {product.about}
+        </Text>
+        <Text style={styles.totalPrice}>Precio Total: ${product.price * selectedQuantity}</Text>
+        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+          <Text style={styles.addToCartText}>Agregar al Carro</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

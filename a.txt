@@ -181,3 +181,18 @@ const styles = StyleSheet.create({
 });
 
 export default ProductDetail;
+
+
+const CarritoUsuario=async(user)=>{
+    const docSnap=await getDoc(doc(db,'UserCart',user?.primaryEmailAddress?.emailAddres));
+    if(docSnap?.exists())
+    {
+      return docSnap.data();
+    }
+    else{
+      await setDoc(doc(db,'UserCart',user?.primaryEmailAddress?.emailAddres),{
+        email:user?.primaryEmailAddress?.emailAddres,
+        favorites:{}
+      })
+    }
+  }

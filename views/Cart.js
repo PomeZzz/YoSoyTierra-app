@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert, FlatList, ActivityIndicator, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingScreen from './LoadingScreen'; // Importa el componente de pantalla de carga
 import { db } from '../config/FireBaseConfig';
@@ -7,58 +7,87 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
 
-const Cart = ({ navigation, user }) => {
-  const [items, setItems] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]); // Estado para manejar los ítems del carrito
-  const [isLoading, setIsLoading] = useState(false); // Estado para controlar la pantalla de carga
-  
-  
-  
-  const handleDelete = (index) => {
-    setIsLoading(true); // Mostrar pantalla de carga
+const Cart = () => {
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-    setTimeout(() => {
-      const newItems = [...items];
-      newItems.splice(index, 1); // Eliminar el elemento del carrito
-      setItems(newItems);
-      setIsLoading(false); // Ocultar pantalla de carga
-      Alert.alert('Éxito', 'El elemento fue eliminado exitosamente.');
-    }, 2000); // Simula un retraso en el proceso de eliminación
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      setIsLoading(true);
+
+      try {
+        const cartRef = doc(db, 'cart', '123'); // Modifica 'user_cart' con el ID del usuario actual
+        const cartSnap = await getDoc(cartRef);
+
+        if (cartSnap.exists()) {
+          const cartData = cartSnap.data().items || [];
+
+          // Cargar detalles de los productos desde 'Sliders'
+          const fetchedItems = await Promise.all(
+            cartData.map(async (cartItem) => {
+              const productRef = doc(db, 'Sliders', cartItem.productId);
+              const productSnap = await getDoc(productRef);
+              if (productSnap.exists()) {
+                return { ...productSnap.data(), quantity: cartItem.quantity };
+              }
+            })
+          );
+
+          setItems(fetchedItems);
+        } else {
+          setItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching cart items:", error);
+        Alert.alert('Error', 'Hubo un problema al obtener los productos del carrito.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, []);
+
+  const handleDelete = async (index) => {
+    setIsLoading(true);
+
+    try {
+      const cartRef = doc(db, 'cart', '123'); // Modifica 'user_cart' con el ID del usuario actual
+      const cartSnap = await getDoc(cartRef);
+
+      if (cartSnap.exists()) {
+        const currentCart = cartSnap.data().items || [];
+        currentCart.splice(index, 1); // Eliminar el producto del carrito
+        await setDoc(cartRef, { items: currentCart });
+        setItems(currentCart); // Actualizar el estado del carrito
+      }
+
+      Alert.alert('Éxito', 'El producto fue eliminado exitosamente.');
+    } catch (error) {
+      console.error("Error al eliminar del carrito:", error);
+      Alert.alert('Error', 'Hubo un problema al eliminar el producto del carrito.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (isLoading) {
-    return <LoadingScreen message="Eliminando elemento..." />;
-  }
-
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {items.map((item, index) => (
-          <View key={index} style={styles.cartItem}>
-            <Image style={styles.productImage} source={require('../assets/hialuronico.png')} />
-            <View style={styles.productDetails}>
-              <Text style={styles.productName}>Serum Facial</Text>
-              <Text style={styles.productPrice}>$250.00</Text>
-              <View style={styles.quantityContainer}>
-                <Text style={styles.quantityLabel}>Cantidad:</Text>
-                <Text style={styles.quantity}>1</Text>
-              </View>
+    <View>
+      <Text>Carrito de Compras</Text>
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item, index }) => (
+            <View>
+              <Text>{item.name} - Cantidad: {item.quantity}</Text>
+              <Button title="Eliminar" onPress={() => handleDelete(index)} />
             </View>
-            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(index)}>
-              <Ionicons name="trash-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.fixedButtonContainer}>
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalText}>Total:</Text>
-          <Text style={styles.totalPrice}>$250.00</Text>
-        </View>
-        <TouchableOpacity style={styles.purchaseButton}>
-          <Text style={styles.purchaseButtonText}>Realizar Compra</Text>
-        </TouchableOpacity>
-      </View>
+          )}
+        />
+      )}
     </View>
   );
 };
