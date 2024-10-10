@@ -3,11 +3,14 @@ import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../config/FireBaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Home = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('Popular'); // Pestaña por defecto
   const [sliderList, setSliderList] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(true); // Default oscuro
 
   // Cargar las categorías desde Firestore
   useEffect(() => {
@@ -18,7 +21,7 @@ const Home = ({ navigation }) => {
     const snapshot = await getDocs(collection(db, 'Categorias'));
     const categories = [];
     snapshot.forEach((doc) => {
-      categories.push(doc.data()); // Almacenar el campo name de cada categoría
+      categories.push(doc.data());
     });
     setCategoryList(categories);
   };
@@ -29,35 +32,52 @@ const Home = ({ navigation }) => {
     const snapshot = await getDocs(q);
     const sliders = [];
     snapshot.forEach((doc) => {
-      sliders.push({ ...doc.data(), id: doc.id }); // Agregar el ID del documento a los datos
+      sliders.push({ ...doc.data(), id: doc.id });
     });
     setSliderList(sliders);
   };
-  
 
   // Cargar sliders según la categoría seleccionada
   useEffect(() => {
-    GetSliders(selectedTab); // Filtrar sliders por la categoría seleccionada
+    GetSliders(selectedTab);
   }, [selectedTab]);
+
+  // Recuperar el estado del modo oscuro desde AsyncStorage cada vez que la pantalla sea enfocada
+  useFocusEffect(
+    React.useCallback(() => {
+      const getDarkModePreference = async () => {
+        try {
+          const savedDarkMode = await AsyncStorage.getItem('darkMode');
+          if (savedDarkMode !== null) {
+            setDarkModeEnabled(JSON.parse(savedDarkMode));
+          }
+        } catch (error) {
+          console.error('Error al recuperar el modo oscuro/claro: ', error);
+        }
+      };
+
+      getDarkModePreference();
+    }, [])
+  );
 
   // Renderizar el contenido de los productos
   const renderContent = () => {
     return (
       <View style={styles.products}>
         {sliderList.map((item, index) => (
-          <View key={index} style={styles.productCard}>
+          <View key={index} style={[styles.productCard, darkModeEnabled ? styles.darkProductCard : styles.lightProductCard]}>
             <Image
               style={styles.productImage}
-              source={{ uri: item.imageUrl }} // item.imageUrl es la URL de la imagen en Firestore
+              source={{ uri: item.imageUrl }}
             />
-            <Text style={styles.productName}>{item.name}</Text>
-            <Text style={styles.productDesc}>{item.description}</Text>
-            <Text style={styles.productPrice}>${item.price}</Text>
+            <Text style={[styles.productName, darkModeEnabled ? styles.darkText : styles.lightText]}>{item.name}</Text>
+            <Text style={[styles.productDesc, darkModeEnabled ? styles.darkText : styles.lightText]}>{item.description}</Text>
+            <Text style={[styles.productPrice, darkModeEnabled ? styles.darkText : styles.lightText]}>${item.price}</Text>
             <TouchableOpacity
-              style={styles.cartButton}
+              style={[styles.cartButton, darkModeEnabled ? styles.darkCartButton : styles.lightCartButton]}
               onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
             >
-              <Text>🛒</Text>
+              <Text style={darkModeEnabled ? styles.darkCartText : styles.lightCartText}>🛒</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -66,20 +86,20 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <ScrollView style={[styles.container, darkModeEnabled ? styles.darkContainer : styles.lightContainer]}>
+      <View style={[styles.header, darkModeEnabled ? styles.darkHeader : styles.lightHeader]}>
         <View style={styles.headerTop}>
           <TouchableOpacity
-            style={styles.iconButton}
+            style={[styles.iconButton, !darkModeEnabled && styles.lightIconButton]}
             onPress={() => navigation.navigate('Settings')}
           >
-            <Ionicons name="settings-outline" size={24} color="black" />
+            <Ionicons name="settings-outline" size={24} color={darkModeEnabled ? "black" : "black"} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.iconButton}
+            style={[styles.iconButton, !darkModeEnabled && styles.lightIconButton]}
             onPress={() => navigation.navigate('Cart')}
           >
-            <Ionicons name="cart-outline" size={24} color="black" />
+            <Ionicons name="cart-outline" size={24} color={darkModeEnabled ? "black" : "black"} />
           </TouchableOpacity>
         </View>
         <Image style={styles.headerImage} source={require('../assets/banner.jpeg')} />
@@ -90,10 +110,10 @@ const Home = ({ navigation }) => {
         {categoryList.map((category, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.menuButton, selectedTab === category.name && styles.activeButton]}
-            onPress={() => setSelectedTab(category.name)} // Cambia la categoría al presionar
+            style={[styles.menuButton, selectedTab === category.name && styles.activeButton, darkModeEnabled ? styles.darkCategoryButton : styles.lightCategoryButton]}
+            onPress={() => setSelectedTab(category.name)}
           >
-            <Text style={styles.menuText}>{category.name}</Text>
+            <Text style={darkModeEnabled ? styles.darkText : styles.lightText}>{category.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -106,12 +126,22 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  darkContainer: {
     backgroundColor: '#2D2D2D',
+  },
+  lightContainer: {
+    backgroundColor: '#fff',
   },
   header: {
     height: 240,
-    backgroundColor: '#333',
     position: 'relative',
+  },
+  darkHeader: {
+    backgroundColor: '#333',
+  },
+  lightHeader: {
+    backgroundColor: '#f5f5f5',
   },
   headerTop: {
     flexDirection: 'row',
@@ -124,6 +154,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6E6E6',
     padding: 10,
     borderRadius: 10,
+  },
+  lightIconButton: {
+    backgroundColor: '#fff',
   },
   headerImage: {
     width: '100%',
@@ -138,23 +171,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 10,
-    backgroundColor: '#2D2D2D',
   },
   menuButton: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#8B6A60',
     borderRadius: 5,
     marginHorizontal: 5,
     alignItems: 'center',
+  },
+  darkCategoryButton: {
+    backgroundColor: '#8B6A60',
+  },
+  lightCategoryButton: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#ccc',
+    borderWidth: 1,
   },
   activeButton: {
     backgroundColor: '#2D2C2B',
     borderWidth: 1,
     borderColor: '#8B6A60',
-  },
-  menuText: {
-    color: '#fff',
   },
   products: {
     flexDirection: 'row',
@@ -164,10 +200,15 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: '45%',
-    backgroundColor: '#3C3C3C',
     borderRadius: 10,
     padding: 10,
     marginBottom: 15,
+  },
+  darkProductCard: {
+    backgroundColor: '#3C3C3C',
+  },
+  lightProductCard: {
+    backgroundColor: '#f9f9f9',
   },
   productImage: {
     width: '100%',
@@ -175,25 +216,41 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   productName: {
-    color: '#fff',
     fontWeight: 'bold',
     marginTop: 10,
   },
+  darkText: {
+    color: '#fff',
+  },
+  lightText: {
+    color: '#333',
+  },
   productDesc: {
-    color: '#aaa',
     marginTop: 5,
   },
   productPrice: {
-    color: '#fff',
     fontWeight: 'bold',
     marginTop: 5,
   },
   cartButton: {
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#8B6A60',
     borderRadius: 5,
     alignItems: 'center',
+  },
+  darkCartButton: {
+    backgroundColor: '#8B6A60',
+  },
+  lightCartButton: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#ccc',
+    borderWidth: 1,
+  },
+  darkCartText: {
+    color: '#fff',
+  },
+  lightCartText: {
+    color: '#333',
   },
 });
 

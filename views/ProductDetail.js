@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc, setDoc } from 'firebase/firestore'; // Añadido 'setDoc' para guardar en Firestore
+import { doc, getDoc, setDoc } from 'firebase/firestore'; 
 import { db } from '../config/FireBaseConfig';
+import { getAuth } from 'firebase/auth'; 
 import LoadingScreen from './LoadingScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Para manejar el almacenamiento del modo oscuro
 
 const ProductDetail = ({ route, navigation }) => {
-  const { productId } = route.params; // Obtener productId de los parámetros de navegación
+  const { productId } = route.params; 
   const [product, setProduct] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(true); // Estado para controlar la pantalla de carga
+  const [isLoading, setIsLoading] = useState(true); 
+  const [darkModeEnabled, setDarkModeEnabled] = useState(true); // Estado para el modo oscuro
   const maxQuantity = 10;
+  const auth = getAuth(); 
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const productRef = doc(db, 'Sliders', productId); // Referencia al documento de Firestore
+        const productRef = doc(db, 'Sliders', productId); 
         const productSnap = await getDoc(productRef);
 
         if (productSnap.exists()) {
-          setProduct(productSnap.data()); // Almacenar los datos del producto
+          setProduct(productSnap.data()); 
         } else {
           Alert.alert('Error', 'Producto no encontrado');
         }
@@ -27,28 +31,49 @@ const ProductDetail = ({ route, navigation }) => {
         console.error("Error fetching product details:", error);
         Alert.alert('Error', 'Hubo un problema al obtener los detalles del producto');
       } finally {
-        setIsLoading(false); // Ocultar pantalla de carga cuando los datos se hayan cargado
+        setIsLoading(false); 
       }
     };
 
     fetchProduct();
   }, [productId]);
 
+  useEffect(() => {
+    const getDarkModePreference = async () => {
+      try {
+        const savedDarkMode = await AsyncStorage.getItem('darkMode');
+        if (savedDarkMode !== null) {
+          setDarkModeEnabled(JSON.parse(savedDarkMode));
+        }
+      } catch (error) {
+        console.error('Error al recuperar el modo oscuro/claro: ', error);
+      }
+    };
+
+    getDarkModePreference();
+  }, []);
+
   const handleAddToCart = async () => {
     setIsLoading(true);
 
     try {
-      // Referencia a la colección 'Cart' con un ID de usuario simulado, puedes usar un ID dinámico
-      const cartRef = doc(db, 'cart', '123'); // Modifica 'user_cart' con el ID del usuario actual
+      const user = auth.currentUser; 
+      if (!user) {
+        Alert.alert('Error', 'Debes iniciar sesión para agregar productos al carrito.');
+        setIsLoading(false);
+        return;
+      }
+
+      const uid = user.uid; 
+
+      const cartRef = doc(db, 'cart', uid); 
       const cartSnap = await getDoc(cartRef);
 
       if (cartSnap.exists()) {
-        // Si el carrito ya existe, actualiza los productos
         const existingCart = cartSnap.data().items || [];
         const newCart = [...existingCart, { productId, quantity: selectedQuantity }];
         await setDoc(cartRef, { items: newCart });
       } else {
-        // Si no existe el carrito, lo crea con el primer producto
         await setDoc(cartRef, { items: [{ productId, quantity: selectedQuantity }] });
       }
 
@@ -70,9 +95,9 @@ const ProductDetail = ({ route, navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, darkModeEnabled ? styles.darkContainer : styles.lightContainer]}>
       <Image
-        source={{ uri: product.imageUrl }} // Usar la URL de la imagen del producto
+        source={{ uri: product.imageUrl }} 
         style={styles.productImage}
       />
       <View style={styles.backAndCartContainer}>
@@ -83,10 +108,10 @@ const ProductDetail = ({ route, navigation }) => {
           <Ionicons name="cart-outline" size={24} color="black" />
         </TouchableOpacity>
       </View>
-      <View style={styles.detailsContainer}>
-        <Text style={styles.productName}>{product.name}</Text>
-        <Text style={styles.productDescription}>{product.description}</Text>
-        <Text style={styles.sectionTitle}>Cantidad</Text>
+      <View style={[styles.detailsContainer, darkModeEnabled ? styles.darkDetailsContainer : styles.lightDetailsContainer]}>
+        <Text style={[styles.productName, darkModeEnabled ? styles.darkText : styles.lightText]}>{product.name}</Text>
+        <Text style={[styles.productDescription, darkModeEnabled ? styles.darkText : styles.lightText]}>{product.description}</Text>
+        <Text style={[styles.sectionTitle, darkModeEnabled ? styles.darkText : styles.lightText]}>Cantidad</Text>
         <View style={styles.quantityContainer}>
           {[...Array(maxQuantity)].map((_, index) => (
             <TouchableOpacity
@@ -94,6 +119,7 @@ const ProductDetail = ({ route, navigation }) => {
               style={[
                 styles.quantityButton,
                 selectedQuantity === index + 1 && styles.selectedQuantityButton,
+                darkModeEnabled ? styles.darkQuantityButton : styles.lightQuantityButton
               ]}
               onPress={() => setSelectedQuantity(index + 1)}
             >
@@ -101,6 +127,7 @@ const ProductDetail = ({ route, navigation }) => {
                 style={[
                   styles.quantityText,
                   selectedQuantity === index + 1 && styles.selectedQuantityText,
+                  darkModeEnabled ? styles.darkText : styles.lightText
                 ]}
               >
                 {index + 1}
@@ -108,12 +135,14 @@ const ProductDetail = ({ route, navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
-        <Text style={styles.productInfo}>
+        <Text style={[styles.productInfo, darkModeEnabled ? styles.darkText : styles.lightText]}>
           {product.about}
         </Text>
-        <Text style={styles.totalPrice}>Precio Total: ${product.price * selectedQuantity}</Text>
-        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-          <Text style={styles.addToCartText}>Agregar al Carro</Text>
+        <Text style={[styles.totalPrice, darkModeEnabled ? styles.darkText : styles.lightText]}>
+          Precio Total: ${product.price * selectedQuantity}
+        </Text>
+        <TouchableOpacity style={[styles.addToCartButton, darkModeEnabled ? styles.darkCartButton : styles.lightCartButton]} onPress={handleAddToCart}>
+          <Text style={darkModeEnabled ? styles.darkCartText : styles.lightCartText}>Agregar al Carrito</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -123,10 +152,12 @@ const ProductDetail = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  darkContainer: {
     backgroundColor: '#1B1B1B',
   },
-  scrollViewContent: {
-    paddingBottom: 20,
+  lightContainer: {
+    backgroundColor: '#FFFFFF',
   },
   productImage: {
     width: '100%',
@@ -148,23 +179,25 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     padding: 20,
-    backgroundColor: '#2D2D2D',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: -20, // Para superponerlo ligeramente sobre la imagen
+    marginTop: -20, 
+  },
+  darkDetailsContainer: {
+    backgroundColor: '#2D2D2D',
+  },
+  lightDetailsContainer: {
+    backgroundColor: '#F5F5F5',
   },
   productName: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
   },
   productDescription: {
-    color: '#aaa',
     marginTop: 5,
     marginBottom: 15,
   },
   sectionTitle: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 20,
@@ -179,10 +212,15 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#3C3C3C',
     borderRadius: 5,
     marginRight: 10,
     marginBottom: 10,
+  },
+  darkQuantityButton: {
+    backgroundColor: '#3C3C3C',
+  },
+  lightQuantityButton: {
+    backgroundColor: '#E6E6E6',
   },
   selectedQuantityButton: {
     backgroundColor: '#8B6A60',
@@ -194,26 +232,37 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   productInfo: {
-    color: '#aaa',
     marginTop: 10,
     lineHeight: 20,
   },
   totalPrice: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 20,
   },
   addToCartButton: {
-    backgroundColor: '#8B6A60',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 15,
   },
-  addToCartText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  darkCartButton: {
+    backgroundColor: '#8B6A60',
+  },
+  lightCartButton: {
+    backgroundColor: '#F0F0F0',
+  },
+  darkCartText: {
+    color: '#FFFFFF',
+  },
+  lightCartText: {
+    color: '#333333',
+  },
+  darkText: {
+    color: '#FFFFFF',
+  },
+  lightText: {
+    color: '#333333',
   },
 });
 
